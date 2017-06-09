@@ -34,6 +34,7 @@ for k in cnt.keys():
 rows = 1000
 cols = len(cnt.keys())  #3145
 matrix = [ ([0] * cols) for row in range(rows) ]
+outputs = [0] * rows
 
 
 file1 = open("imdb_labelled.txt", "r")
@@ -41,11 +42,15 @@ lineNum = 0
 for line in file1:
     token = nltk.word_tokenize(line.decode("utf8"))
     lineNum +=1 
+    y = token[len(token)-1]
+    outputs[lineNum-1] = y
+    token.pop()
     for word in token:
         lookup = index[word.lower()]
         matrix[lineNum-1][lookup]= 1
 
 #matrix with binary equivalent of data
-print(matrix)
+#print(matrix)
+print(outputs)
 
 
