@@ -23,7 +23,29 @@ for i in range(len(tokens)):
    word = tokens[i]
    cnt[word]+= 1
 
-print(len(cnt.keys()))
+#maps each word to an index number
+index = dict()
+i = 0
+for k in cnt.keys():
+    index[k] = i
+    i+=1
 
+
+rows = 1000
+cols = len(cnt.keys())  #3145
+matrix = [ ([0] * cols) for row in range(rows) ]
+
+
+file1 = open("imdb_labelled.txt", "r")
+lineNum = 0
+for line in file1:
+    token = nltk.word_tokenize(line.decode("utf8"))
+    lineNum +=1 
+    for word in token:
+        lookup = index[word.lower()]
+        matrix[lineNum-1][lookup]= 1
+
+#matrix with binary equivalent of data
+print(matrix)
 
 
