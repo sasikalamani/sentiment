@@ -5,6 +5,10 @@ import theano
 import theano.tensor as T
 import numpy as np
 import random
+from sklearn import linear_model
+
+
+logreg = linear_model.LogisticRegression(C=1e5)
 
 #read from text file
 file = open("imdb_labelled.txt", "r")
@@ -48,7 +52,7 @@ def preproc(file1):
         token = nltk.word_tokenize(line.decode("utf8"))
         lineNum +=1 
         y = token[len(token)-1]
-        outputs[lineNum-1] = [int(y)]
+        outputs[lineNum-1] = int(y)
         token.pop()
         for word in token:
             lookup = index[word.lower()]
@@ -74,45 +78,14 @@ for i in range(1000):
         trainO.append(outputs[i])
 
 
-X = theano.shared(value=np.asarray(trainD), name='X')
-X1 = theano.shared(value=np.asarray(testD), name='X1')
-y = theano.shared(value=np.asarray(trainO), name='y')
-rng = np.random.RandomState(1234)
-LEARNING_RATE = 0.01
+logreg.fit(array, outputs1, sample_weight = None)
 
-
-def layer(n_in, n_out):
-    return theano.shared(value=np.asarray(rng.uniform(low=-1.0, high=1.0, 
-        size=(n_in, n_out)), dtype=theano.config.floatX), name='W', borrow=True)
- 
-W1 = layer(3145, 7)
-W2 = layer(7, 1)
-
-
-output = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X, W1)), W2))
-output1 = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X1, W1)), W2))
-cost = T.sum((y - output) ** 2)
-updates = [(W1, W1 - LEARNING_RATE * T.grad(cost, W1)), (W2, W2 - LEARNING_RATE * T.grad(cost, W2))]
-
-train = theano.function(inputs=[], outputs=[], updates=updates)
-test = theano.function(inputs=[], outputs=[output1])
- 
-
-for i in range(1000):
-    if (i+1) % 10 == 0:
-        print(i+1)
-    train()
-
-
-new = (test()[0].tolist())
-for i in range(100):
-    if (new[i][0] >= 0.5): 
-        new[i][0] = 1
-    else:
-        new[i][0] = 0
-
+new = logreg.predict(array)
 counter = 0
 for i in range(100):
-    if(new[i][0] == testO[i][0]):
+    if(new[i-1] == testO[i-1]):
         counter= counter +1
 print(counter)
+
+
+
