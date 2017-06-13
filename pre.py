@@ -59,47 +59,62 @@ def preproc(file1):
     return (matrix, outputs)
     #return outputs
 (array, outputs1) = preproc(file1)
+testD = list()
+testO = list()
+trainD = list()
+trainO = list()
+
+ranNum = random.sample(range(1000), 100)
+for i in range(1000):
+    if (i in ranNum): 
+        testD.append(array[i])
+        testO.append(outputs[i])
+    else:
+        trainD.append(array[i])
+        trainO.append(outputs[i])
 
 
-X = theano.shared(value=np.asarray(array), name='X')
-y = theano.shared(value=np.asarray(outputs1), name='y')
-
+X = theano.shared(value=np.asarray(trainD), name='X')
+X1 = theano.shared(value=np.asarray(testD), name='X1')
+y = theano.shared(value=np.asarray(trainO), name='y')
 rng = np.random.RandomState(1234)
 LEARNING_RATE = 0.01
- 
+
+
 def layer(n_in, n_out):
     return theano.shared(value=np.asarray(rng.uniform(low=-1.0, high=1.0, 
         size=(n_in, n_out)), dtype=theano.config.floatX), name='W', borrow=True)
  
-W1 = layer(3145, 7)
-W2 = layer(7, 1)
- 
+W1 = layer(3145, 20)
+W2 = layer(20, 1)
+
+
 output = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X, W1)), W2))
-#output1 = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X1, W1)), W2))
+output1 = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X1, W1)), W2))
 cost = T.sum((y - output) ** 2)
 updates = [(W1, W1 - LEARNING_RATE * T.grad(cost, W1)), (W2, W2 - LEARNING_RATE * T.grad(cost, W2))]
- 
+
 train = theano.function(inputs=[], outputs=[], updates=updates)
-test = theano.function(inputs=[], outputs=[output])
-    #[output1])
+test = theano.function(inputs=[], outputs=[output1])
  
+
 for i in range(1000):
     if (i+1) % 10 == 0:
         print(i+1)
     train()
- 
+
+
 new = (test()[0].tolist())
-for i in range(1000):
+for i in range(100):
     if (new[i][0] >= 0.5): 
         new[i][0] = 1
     else:
         new[i][0] = 0
 
 counter = 0
-for i in range(1000):
-    if(new[i][0] == outputs1[i][0]):
+for i in range(100):
+    if(new[i][0] == testO[i][0]):
         counter= counter +1
 print(counter)
-
 
 
