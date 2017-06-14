@@ -94,13 +94,16 @@ def layer(n_in, n_out):
         size=(n_in, n_out)), dtype=theano.config.floatX), name='W', borrow=True)
  
 W1 = layer(4279, 7)
-W2 = layer(7, 1)
+W2 = layer(7, 5)
+W3 = layer(5, 1)
 
 
-output = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X, W1)), W2))
-output1 = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X1, W1)), W2))
+output = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X, W1)), W2)), W3))
+output1 = T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(T.nnet.sigmoid(T.dot(X, W1)), W2)), W3))
 cost = T.sum((y - output) ** 2)
-updates = [(W1, W1 - LEARNING_RATE * T.grad(cost, W1)), (W2, W2 - LEARNING_RATE * T.grad(cost, W2))]
+updates = [(W1, W1 - LEARNING_RATE * T.grad(cost, W1)), 
+           (W2, W2 - LEARNING_RATE * T.grad(cost, W2)),
+           (W3, W3 - LEARNING_RATE * T.grad(cost, W3))]
 
 train = theano.function(inputs=[], outputs=[], updates=updates)
 test = theano.function(inputs=[], outputs=[output1])
