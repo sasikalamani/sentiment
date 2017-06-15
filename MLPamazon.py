@@ -74,9 +74,10 @@ validO = list()
 
 
 count = 0
-ranNum = random.sample(range(1000), 100)
+random.seed(2)
+ranNum = random.sample(range(1000), 200)
 for i in range(1000):
-    if (i in ranNum and count<50): 
+    if (i in ranNum and count<100): 
         testD.append(array[i])
         testO.append(outputs[i])
         count = count+1
@@ -250,7 +251,7 @@ class MLP(object):
 
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=20, n_hidden=7):
+             dataset='mnist.pkl.gz', batch_size=20, n_hidden=2):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -279,18 +280,24 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
    """
 
+    #print(trainO)
+    Xo = theano.shared(value=np.asarray(trainD, dtype='float64'), name='Xo')
+    yo = theano.shared(value=np.asarray(trainO, dtype = 'int32'), name='yo')
+    Xot = theano.shared(value=np.asarray(testD, dtype='float64'), name='Xot')
+    yot = theano.shared(value=np.asarray(testO, dtype = 'int32'), name='yot')
+    Xov = theano.shared(value=np.asarray(validD, dtype='float64'), name='Xot')
+    yov = theano.shared(value=np.asarray(validO, dtype = 'int32'), name='yot')
 
-    X = theano.shared(value=np.asarray(trainD, dtype = 'float64'), name='X')
-    y1 = theano.shared(value=np.asarray(trainO, dtype = 'int32'), name='y1')
-
-    train_set_x, train_set_y = (X,y1)
-    valid_set_x, valid_set_y = (X,y1)
-    test_set_x, test_set_y = (X,y1)
+    #print(y)
+#    sys.exit()
+    train_set_x, train_set_y = (Xo,yo)
+    valid_set_x, valid_set_y = (Xov,yov)
+    test_set_x, test_set_y = (Xot,yot)
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = 1
-    n_valid_batches = 1
-    n_test_batches = 1
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
 
     ######################
     # BUILD ACTUAL MODEL #
@@ -381,12 +388,75 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     ###############
     print('... training')
 
-    for epoch in range(1, n_epochs+1):
-        for x, y in train_examples:
-            train_model(x, y)
-        # compute zero-one loss on validation set
-        error = numpy.mean([evaluate_model(x, y) for x, y in dev_examples])
-        print('epoch %i, validation error %f %%' % (epoch, error * 100))
+    # early-stopping parameters
+    patience = 900  # look as this many examples regardless
+    patience_increase = 2  # wait this much longer when a new best is
+                           # found
+    improvement_threshold = 0.995  # a relative improvement of this much is
+                                   # considered significant
+    validation_frequency = min(n_train_batches, patience // 2)
+                                  # go through this many
+                                  # minibatche before checking the network
+                                  # on the validation set; in this case we
+                                  # check every epoch
+
+    best_validation_loss = np.inf
+    best_iter = 0
+    test_score = 0.
+    start_time = timeit.default_timer()
+
+    epoch = 0
+    done_looping = False
+    while (epoch < n_epochs) and (not done_looping):
+        epoch = epoch + 1
+        for minibatch_index in range(n_train_batches):
+
+            minibatch_avg_cost = train_model(minibatch_index)
+            # iteration number
+            iter = (epoch - 1) * n_train_batches + minibatch_index
+
+            if (iter + 1) % validation_frequency == 0:
+                # compute zero-one loss on validation set
+                validation_losses = [validate_model(i) for i
+                                     in range(n_valid_batches)]
+                this_validation_loss = np.mean(validation_losses)
+
+                print(
+                    'epoch %i, minibatch %i/%i, validation error %f %%' %
+                    (
+                        epoch,
+                        minibatch_index + 1,
+                        n_train_batches,
+                        this_validation_loss * 100.
+                    )
+                )
+
+                # if we got the best validation score until now
+                #if this_validation_loss < best_validation_loss:
+                if 1 < 2:
+                    #improve patience if loss improvement is good enough
+                    if (
+                        this_validation_loss < best_validation_loss *
+                        improvement_threshold
+                    ):
+                        patience = max(patience, iter * patience_increase)
+
+                    best_validation_loss = this_validation_loss
+                    best_iter = iter
+
+                    # test it on the test set
+                    test_losses = [test_model(i) for i
+                                   in range(n_test_batches)]
+                    test_score = np.mean(test_losses)
+
+                    print(('     epoch %i, minibatch %i/%i, test error of '
+                           'best model %f %%') %
+                          (epoch, minibatch_index + 1, n_train_batches,
+                           test_score * 100.))
+
+            if patience <= iter:
+                done_looping = True
+                break
 
     end_time = timeit.default_timer()
     print(('Optimization complete. Best validation score of %f %% '
