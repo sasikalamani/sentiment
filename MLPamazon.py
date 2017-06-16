@@ -2,12 +2,14 @@
 
 from __future__ import print_function
 import nltk
+import math
 from collections import Counter
 from nltk.corpus import stopwords
 import theano
 import theano.tensor as T
 import numpy as np
 import random
+from sklearn import linear_model
 __docformat__ = 'restructedtext en'
 import os
 import sys
@@ -87,7 +89,6 @@ for i in range(1000):
     else:
         trainD.append(array[i])
         trainO.append(outputs[i])
-
 
 # start-snippet-1
 class HiddenLayer(object):
@@ -251,7 +252,7 @@ class MLP(object):
 
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=20, n_hidden=2):
+             dataset='mnist.pkl.gz', batch_size=20, n_hidden=47):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -302,7 +303,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     ######################
     # BUILD ACTUAL MODEL #
     ######################
-    print('... building the model')
+    #print('... building the model')
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
@@ -386,7 +387,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     ###############
     # TRAIN MODEL #
     ###############
-    print('... training')
+    #print('... training')
 
     # early-stopping parameters
     patience = 900  # look as this many examples regardless
@@ -421,15 +422,15 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                                      in range(n_valid_batches)]
                 this_validation_loss = np.mean(validation_losses)
 
-                print(
-                    'epoch %i, minibatch %i/%i, validation error %f %%' %
-                    (
-                        epoch,
-                        minibatch_index + 1,
-                        n_train_batches,
-                        this_validation_loss * 100.
-                    )
-                )
+                #print(
+                #    'epoch %i, minibatch %i/%i, validation error %f %%' %
+                #    (
+                #        epoch,
+                #        minibatch_index + 1,
+                #        n_train_batches,
+                #        this_validation_loss * 100.
+                #    )
+                #)
 
                 # if we got the best validation score until now
                 #if this_validation_loss < best_validation_loss:
@@ -449,10 +450,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                                    in range(n_test_batches)]
                     test_score = np.mean(test_losses)
 
-                    print(('     epoch %i, minibatch %i/%i, test error of '
-                           'best model %f %%') %
-                          (epoch, minibatch_index + 1, n_train_batches,
-                           test_score * 100.))
+                    #print(('     epoch %i, minibatch %i/%i, test error of '
+                           #'best model %f %%') %
+                          #(epoch, minibatch_index + 1, n_train_batches,
+                           #test_score * 100.))
 
             if patience <= iter:
                 done_looping = True
@@ -465,7 +466,15 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     print(('The code for file ' +
            os.path.split(__file__)[1] +
            ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
+    print("\n")
+
+
 
 
 if __name__ == '__main__':
-    test_mlp()
+    for i in range(1,3):
+        for j in range(2, 1000, 20):
+            print("Learning rate :", math.pow(10, (-i)))
+            print("n_hidden :", j)
+            test_mlp(learning_rate = math.pow(10, (-i)), n_hidden = j)
+        
