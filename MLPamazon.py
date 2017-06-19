@@ -207,15 +207,23 @@ class MLP(object):
             rng=rng,
             input=input,
             n_in=n_in,
-            n_out=n_hidden,
+            n_out=2 * n_hidden,
+            activation=T.tanh
+        )
+
+        self.hiddenLayer2 = HiddenLayer(
+            rng=rng,
+            input=self.hiddenLayer.output,
+            n_in= 2* n_hidden,
+            n_out= n_hidden,
             activation=T.tanh
         )
 
         # The logistic regression layer gets as input the hidden units
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression(
-            input=self.hiddenLayer.output,
-            n_in=n_hidden,
+            input=self.hiddenLayer2.output,
+            n_in= n_hidden,
             n_out=n_out
         )
         # end-snippet-2 start-snippet-3
@@ -223,6 +231,7 @@ class MLP(object):
         # be small
         self.L1 = (
             abs(self.hiddenLayer.W).sum()
+            + abs(self.hiddenLayer2.W).sum()
             + abs(self.logRegressionLayer.W).sum()
         )
 
@@ -230,6 +239,7 @@ class MLP(object):
         # square of L2 norm to be small
         self.L2_sqr = (
             (self.hiddenLayer.W ** 2).sum()
+            + (self.hiddenLayer2.W ** 2).sum()
             + (self.logRegressionLayer.W ** 2).sum()
         )
 
@@ -244,7 +254,7 @@ class MLP(object):
 
         # the parameters of the model are the parameters of the two layer it is
         # made out of
-        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
+        self.params = self.hiddenLayer.params + self.hiddenLayer2.params + self.logRegressionLayer.params
         # end-snippet-3
 
         # keep track of model input
@@ -252,7 +262,7 @@ class MLP(object):
 
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=20, n_hidden=47):
+             dataset='mnist.pkl.gz', batch_size=20, n_hidden=102):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -433,8 +443,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                 #)
 
                 # if we got the best validation score until now
-                #if this_validation_loss < best_validation_loss:
-                if 1 < 2:
+                if this_validation_loss < best_validation_loss:
                     #improve patience if loss improvement is good enough
                     if (
                         this_validation_loss < best_validation_loss *
@@ -472,9 +481,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
 
 if __name__ == '__main__':
-    for i in range(1,3):
-        for j in range(2, 1000, 20):
-            print("Learning rate :", math.pow(10, (-i)))
-            print("n_hidden :", j)
-            test_mlp(learning_rate = math.pow(10, (-i)), n_hidden = j)
-        
+    for i in range(1, 500,20):
+        print("Hidden layers: ", i)
+        test_mlp(n_hidden = i)
+    
