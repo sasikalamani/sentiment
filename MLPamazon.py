@@ -15,15 +15,17 @@ import os
 import sys
 import timeit
 from logistic_sgd import LogisticRegression
+import test
+import codecs
 
 
 #read from text file
-file = open("amazon_cells_labelled.txt", "r")
-data = file.read().decode("utf8")
+str1 = unicode("rt-polarity.neg", errors='ignore')
+file = open(str1, "r")
+data = file.read().decode('unicode_escape').encode('utf-8')
 
 #tokenize the data
 tokens = nltk.word_tokenize(data)
-
 #make all words lowercase
 for i in range(len(tokens)):
     tokens[i] = tokens[i].lower()
@@ -48,7 +50,7 @@ matrix = [ ([0] * cols) for row in range(rows) ]
 outputs = [0] * rows
 
 
-file3 = open("amazon_cells_labelled.txt", "r")
+file3 = open("rt-polarity.neg", "r")
 def preproc(file1):
     lineNum = 0
     for line in file3:
@@ -89,6 +91,9 @@ for i in range(1000):
     else:
         trainD.append(array[i])
         trainO.append(outputs[i])
+
+
+#(test1, test2, test3, test4) = test.data()
 
 # start-snippet-1
 class HiddenLayer(object):
@@ -207,22 +212,14 @@ class MLP(object):
             rng=rng,
             input=input,
             n_in=n_in,
-            n_out=2 * n_hidden,
-            activation=T.tanh
-        )
-
-        self.hiddenLayer2 = HiddenLayer(
-            rng=rng,
-            input=self.hiddenLayer.output,
-            n_in= 2* n_hidden,
-            n_out= n_hidden,
-            activation=T.tanh
+            n_out=n_hidden,
+            activation=T.nnet.relu
         )
 
         # The logistic regression layer gets as input the hidden units
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression(
-            input=self.hiddenLayer2.output,
+            input=self.hiddenLayer.output,
             n_in= n_hidden,
             n_out=n_out
         )
@@ -231,7 +228,6 @@ class MLP(object):
         # be small
         self.L1 = (
             abs(self.hiddenLayer.W).sum()
-            + abs(self.hiddenLayer2.W).sum()
             + abs(self.logRegressionLayer.W).sum()
         )
 
@@ -239,7 +235,6 @@ class MLP(object):
         # square of L2 norm to be small
         self.L2_sqr = (
             (self.hiddenLayer.W ** 2).sum()
-            + (self.hiddenLayer2.W ** 2).sum()
             + (self.logRegressionLayer.W ** 2).sum()
         )
 
@@ -254,7 +249,7 @@ class MLP(object):
 
         # the parameters of the model are the parameters of the two layer it is
         # made out of
-        self.params = self.hiddenLayer.params + self.hiddenLayer2.params + self.logRegressionLayer.params
+        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
         # end-snippet-3
 
         # keep track of model input
@@ -481,7 +476,5 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
 
 if __name__ == '__main__':
-    for i in range(1, 500,20):
-        print("Hidden layers: ", i)
-        test_mlp(n_hidden = i)
+    test_mlp()
     
