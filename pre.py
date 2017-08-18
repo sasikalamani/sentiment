@@ -7,9 +7,10 @@ import numpy as np
 import random
 
 #read from text file
-file = open("imdb_labelled.txt", "r")
+file = open("yelp_labelled.txt", "r")
 data = file.read()
 data = data.decode("utf8")
+
 
 #tokenize the data
 tokens = nltk.word_tokenize(data)
@@ -36,12 +37,12 @@ for k in cnt.keys():
 
 
 rows = 1000
-cols = len(cnt.keys())  #3145
+cols = len(cnt.keys())  #3145 #2088
 matrix = [ ([0] * cols) for row in range(rows) ]
 outputs = [0] * rows
 
 
-file1 = open("imdb_labelled.txt", "r")
+file1 = open("yelp_labelled.txt", "r")
 def preproc(file1):
     lineNum = 0
     for line in file1:
@@ -85,7 +86,7 @@ def layer(n_in, n_out):
     return theano.shared(value=np.asarray(rng.uniform(low=-1.0, high=1.0, 
         size=(n_in, n_out)), dtype=theano.config.floatX), name='W', borrow=True)
  
-W1 = layer(3145, 7)
+W1 = layer(2088, 7)
 W2 = layer(7, 1)
 
 

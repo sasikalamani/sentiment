@@ -276,7 +276,7 @@ class MLP(object):
 
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=20, n_hidden=10):
+             dataset='mnist.pkl.gz', batch_size=5, n_hidden=10):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -458,8 +458,8 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                 #)
 
                 # if we got the best validation score until now
-                #if(1<2):
-                if this_validation_loss < best_validation_loss:
+                if(1<2):
+                #if this_validation_loss < best_validation_loss:
                     #improve patience if loss improvement is good enough
                     if (
                         this_validation_loss < best_validation_loss *

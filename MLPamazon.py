@@ -20,12 +20,14 @@ import codecs
 
 
 #read from text file
-str1 = unicode("rt-polarity.neg", errors='ignore')
-file = open(str1, "r")
-data = file.read().decode('unicode_escape').encode('utf-8')
+
+#read from text file
+file = open("amazon_cells_labelled.txt", "r")
+data = file.read().decode("utf8")
 
 #tokenize the data
 tokens = nltk.word_tokenize(data)
+
 #make all words lowercase
 for i in range(len(tokens)):
     tokens[i] = tokens[i].lower()
@@ -50,7 +52,7 @@ matrix = [ ([0] * cols) for row in range(rows) ]
 outputs = [0] * rows
 
 
-file3 = open("rt-polarity.neg", "r")
+file3 = open("amazon_cells_labelled.txt", "r")
 def preproc(file1):
     lineNum = 0
     for line in file3:
@@ -91,8 +93,7 @@ for i in range(1000):
     else:
         trainD.append(array[i])
         trainO.append(outputs[i])
-
-
+#print(len(validD))
 #(test1, test2, test3, test4) = test.data()
 
 # start-snippet-1
@@ -213,13 +214,20 @@ class MLP(object):
             input=input,
             n_in=n_in,
             n_out=n_hidden,
-            activation=T.nnet.relu
+            activation=T.tanh
+        )
+        self.hiddenLayer1 = HiddenLayer(
+            rng=rng,
+            input=self.hiddenLayer.output,
+            n_in=n_hidden,
+            n_out=n_hidden,
+            activation=T.tanh
         )
 
         # The logistic regression layer gets as input the hidden units
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression(
-            input=self.hiddenLayer.output,
+            input=self.hiddenLayer2.output,
             n_in= n_hidden,
             n_out=n_out
         )
@@ -257,7 +265,7 @@ class MLP(object):
 
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=20, n_hidden=102):
+             dataset='mnist.pkl.gz', batch_size=20, n_hidden=10):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer
     perceptron
@@ -421,6 +429,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
+
             if (iter + 1) % validation_frequency == 0:
                 # compute zero-one loss on validation set
                 validation_losses = [validate_model(i) for i
@@ -437,8 +446,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                 #    )
                 #)
 
+                
                 # if we got the best validation score until now
-                if this_validation_loss < best_validation_loss:
+                if(1<2):
+                #if this_validation_loss < best_validation_loss:
                     #improve patience if loss improvement is good enough
                     if (
                         this_validation_loss < best_validation_loss *
@@ -459,9 +470,9 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                           #(epoch, minibatch_index + 1, n_train_batches,
                            #test_score * 100.))
 
-            if patience <= iter:
-                done_looping = True
-                break
+            #if patience <= iter:
+                #done_looping = True
+                #break
 
     end_time = timeit.default_timer()
     print(('Optimization complete. Best validation score of %f %% '
@@ -476,5 +487,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
 
 if __name__ == '__main__':
-    test_mlp()
+    for i in range(2, 120, 20):
+        print(i)
+        test_mlp(n_hidden = i)
     
